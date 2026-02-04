@@ -133,7 +133,7 @@ streamlit run ui/app.py
 1. [Streamlit Cloud](https://streamlit.io/cloud)에 로그인
 2. "New app" 클릭
 3. 저장소 선택: `daehyub71/seoul-daycare-agent`
-4. Main file path: `ui/app.py`
+4. **Main file path**: `ui/app_standalone.py` ⚠️ **중요: 반드시 이 파일 사용!**
 5. "Advanced settings" → "Secrets" 클릭
 6. 아래 내용 입력:
 
@@ -152,7 +152,15 @@ BATCH_SIZE = 100
 
 7. "Deploy!" 클릭
 
+#### UI 파일 비교
+| 파일 | 사용 환경 | 특징 |
+|------|-----------|------|
+| `ui/app.py` | 로컬 개발 | FastAPI 서버 필요 (localhost:8000) |
+| `ui/app_standalone.py` | Streamlit Cloud | FastAPI 없이 독립 실행 |
+
 #### 주의사항
+- **Streamlit Cloud**: 반드시 `ui/app_standalone.py` 사용
+- **로컬 개발**: `ui/app.py` + FastAPI 서버 조합 사용
 - 데이터베이스와 벡터 인덱스가 이미 포함되어 있어 별도 전처리 불필요
 - OpenAI API 키는 반드시 Secrets에 등록 (코드에 직접 입력 금지)
 - 무료 플랜: 1GB 메모리 제한 (현재 프로젝트는 약 52MB로 충분)
