@@ -19,10 +19,10 @@ ENV/
 *.swp
 *.swo
 
-# Data
-data/processed/
-data/vector_index/
-*.db
+# Data (empty - include all data files for easy setup)
+# data/processed/
+# data/vector_index/
+# *.db
 *.db-journal
 
 # Tests
