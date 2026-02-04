@@ -28,14 +28,21 @@ def document_retriever_node(state: dict) -> dict:
     filters = state.get("filters", {})
     keywords = state.get("keywords", [])
 
-    # Combine query and keywords for vector search
+    # Combine query, keywords, and filter values for better vector search
     search_text = query
     if keywords:
         search_text = f"{query} {' '.join(keywords)}"
 
+    # Add filter values to search text to improve vector search relevance
+    if filters.get("district"):
+        search_text = f"{search_text} {filters['district']}"
+    if filters.get("type"):
+        search_text = f"{search_text} {filters['type']}"
+
     print(f"\n[SEARCH] Starting retrieval...")
     print(f"   - Query: {query}")
     print(f"   - Filters: {filters}")
+    print(f"   - Search text: {search_text}")
 
     try:
         # Step 1: Vector similarity search (if index exists)
