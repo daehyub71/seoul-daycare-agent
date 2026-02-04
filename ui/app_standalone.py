@@ -8,18 +8,34 @@ import os
 from pathlib import Path
 import streamlit as st
 
-# Add app directory to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root / "app"))
+# Add app directory to path BEFORE any imports
+project_root = Path(__file__).resolve().parent.parent
+app_dir = project_root / "app"
+sys.path.insert(0, str(app_dir))
 
 # Set environment variables from Streamlit secrets (for Cloud deployment)
 if hasattr(st, 'secrets'):
-    for key in st.secrets:
-        os.environ[key] = str(st.secrets[key])
+    try:
+        for key in st.secrets:
+            os.environ[key] = str(st.secrets[key])
+    except Exception as e:
+        st.error(f"Error loading secrets: {e}")
 
 # Import workflow components
-from workflows.graph_builder import SearchWorkflow
-from database import get_session, DaycareCenter
+try:
+    from workflows.graph_builder import run_search_workflow_sync
+    from database import get_session, DaycareCenter
+except ImportError as e:
+    st.error(f"""
+    Import Error: {e}
+
+    Please check:
+    - Project root: {project_root}
+    - App dir: {app_dir}
+    - App dir exists: {app_dir.exists()}
+    - sys.path: {sys.path[:3]}
+    """)
+    st.stop()
 
 # Page config
 st.set_page_config(
@@ -71,14 +87,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Initialize workflow
-@st.cache_resource
-def get_workflow():
-    """Initialize and cache workflow"""
-    return SearchWorkflow()
-
-workflow = get_workflow()
-
 # Initialize session state
 if "search_results" not in st.session_state:
     st.session_state.search_results = None
@@ -96,8 +104,9 @@ with st.sidebar:
             DaycareCenter.crstatusname == "정상"
         ).all()
         district_options = ["전체"] + sorted([d[0] for d in districts if d[0]])
-    except:
+    except Exception as e:
         district_options = ["전체"]
+        st.sidebar.warning(f"시군구 목록 로드 실패: {e}")
     finally:
         session.close()
 
@@ -111,8 +120,9 @@ with st.sidebar:
             DaycareCenter.crstatusname == "정상"
         ).all()
         type_options = ["전체"] + sorted([t[0] for t in types if t[0]])
-    except:
+    except Exception as e:
         type_options = ["전체"]
+        st.sidebar.warning(f"유형 목록 로드 실패: {e}")
     finally:
         session.close()
 
@@ -132,8 +142,8 @@ with st.sidebar:
             DaycareCenter.crstatusname == "정상"
         ).count()
         st.metric("전체 어린이집", f"{total:,}개")
-    except:
-        st.info("통계를 불러올 수 없습니다.")
+    except Exception as e:
+        st.info(f"통계를 불러올 수 없습니다: {e}")
     finally:
         session.close()
 
@@ -168,8 +178,19 @@ if search_button and query:
             if min_cctv > 0:
                 filters["min_cctv"] = min_cctv
 
-            # Run workflow
-            result = workflow.run(query=query, filters=filters)
+            # Prepare initial state
+            initial_state = {
+                "query": query,
+                "filters": filters,
+                "search_intent": "",
+                "keywords": [],
+                "search_results": [],
+                "answer": "",
+                "metadata": {},
+            }
+
+            # Run workflow directly
+            result = run_search_workflow_sync(query)
 
             # Store results
             st.session_state.search_results = {
@@ -181,6 +202,8 @@ if search_button and query:
 
         except Exception as e:
             st.error(f"검색 오류: {str(e)}")
+            import traceback
+            st.code(traceback.format_exc())
 
 # Display results
 if st.session_state.search_results:
