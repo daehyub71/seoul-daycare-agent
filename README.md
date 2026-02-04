@@ -123,6 +123,40 @@ uvicorn main:app --reload --port 8000
 streamlit run ui/app.py
 ```
 
+### 5. Streamlit Cloud 배포
+
+#### 사전 준비
+1. GitHub 저장소 공개 또는 Streamlit Cloud 연동
+2. OpenAI API 키 준비
+
+#### 배포 단계
+1. [Streamlit Cloud](https://streamlit.io/cloud)에 로그인
+2. "New app" 클릭
+3. 저장소 선택: `daehyub71/seoul-daycare-agent`
+4. Main file path: `ui/app.py`
+5. "Advanced settings" → "Secrets" 클릭
+6. 아래 내용 입력:
+
+```toml
+OPENAI_API_KEY = "your-openai-api-key-here"
+OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_EMBEDDING_MODEL = "text-embedding-3-large"
+DB_PATH = "data/processed/daycare.db"
+VECTOR_INDEX_PATH = "data/vector_index/faiss.index"
+VECTOR_METADATA_PATH = "data/vector_index/metadata.json"
+TOP_K = 10
+SIMILARITY_THRESHOLD = 0.7
+EMBEDDING_DIMENSION = 3072
+BATCH_SIZE = 100
+```
+
+7. "Deploy!" 클릭
+
+#### 주의사항
+- 데이터베이스와 벡터 인덱스가 이미 포함되어 있어 별도 전처리 불필요
+- OpenAI API 키는 반드시 Secrets에 등록 (코드에 직접 입력 금지)
+- 무료 플랜: 1GB 메모리 제한 (현재 프로젝트는 약 52MB로 충분)
+
 ## API 엔드포인트
 
 | Method | Endpoint | Description |
