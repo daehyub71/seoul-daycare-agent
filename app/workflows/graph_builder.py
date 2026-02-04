@@ -85,12 +85,13 @@ def get_workflow():
     return _workflow_app
 
 
-async def run_search_workflow(query: str) -> dict:
+async def run_search_workflow(query: str, filters: dict = None) -> dict:
     """
     Run the complete search workflow
 
     Args:
         query: User search query
+        filters: Optional filters dict (district, type, has_playground, min_cctv)
 
     Returns:
         Final workflow state with answer and metadata
@@ -101,7 +102,7 @@ async def run_search_workflow(query: str) -> dict:
     initial_state = {
         "query": query,
         "search_intent": "",
-        "filters": {},
+        "filters": filters or {},
         "keywords": [],
         "search_results": [],
         "answer": "",
@@ -114,12 +115,13 @@ async def run_search_workflow(query: str) -> dict:
     return final_state
 
 
-def run_search_workflow_sync(query: str) -> dict:
+def run_search_workflow_sync(query: str, filters: dict = None) -> dict:
     """
     Synchronous version of run_search_workflow
 
     Args:
         query: User search query
+        filters: Optional filters dict (district, type, has_playground, min_cctv)
 
     Returns:
         Final workflow state with answer and metadata
@@ -130,7 +132,7 @@ def run_search_workflow_sync(query: str) -> dict:
     initial_state = {
         "query": query,
         "search_intent": "",
-        "filters": {},
+        "filters": filters or {},
         "keywords": [],
         "search_results": [],
         "answer": "",

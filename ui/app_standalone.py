@@ -178,19 +178,8 @@ if search_button and query:
             if min_cctv > 0:
                 filters["min_cctv"] = min_cctv
 
-            # Prepare initial state
-            initial_state = {
-                "query": query,
-                "filters": filters,
-                "search_intent": "",
-                "keywords": [],
-                "search_results": [],
-                "answer": "",
-                "metadata": {},
-            }
-
-            # Run workflow directly
-            result = run_search_workflow_sync(query)
+            # Run workflow directly with filters
+            result = run_search_workflow_sync(query, filters)
 
             # Store results
             st.session_state.search_results = {
