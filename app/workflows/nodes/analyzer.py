@@ -44,7 +44,7 @@ def query_analyzer_node(state: WorkflowState) -> WorkflowState:
         return {
             **state,
             "search_intent": "unknown",
-            "filters": {},
+            "filters": state.get("filters", {}),  # Preserve existing filters
             "keywords": [],
             "metadata": {"analyzer_error": "Empty query"},
         }
@@ -83,18 +83,22 @@ def query_analyzer_node(state: WorkflowState) -> WorkflowState:
 
         # Extract fields
         search_intent = result.get("search_intent", "unknown")
-        filters = result.get("filters", {})
+        llm_filters = result.get("filters", {})
         keywords = result.get("keywords", [])
+
+        # Merge filters: existing filters (from UI) take precedence over LLM-extracted filters
+        existing_filters = state.get("filters", {})
+        merged_filters = {**llm_filters, **existing_filters}
 
         print(f"[OK] Query analyzed:")
         print(f"   - Intent: {search_intent}")
-        print(f"   - Filters: {filters}")
+        print(f"   - Filters: {merged_filters}")
         print(f"   - Keywords: {keywords}")
 
         return {
             **state,
             "search_intent": search_intent,
-            "filters": filters,
+            "filters": merged_filters,
             "keywords": keywords,
         }
 
@@ -103,7 +107,7 @@ def query_analyzer_node(state: WorkflowState) -> WorkflowState:
         return {
             **state,
             "search_intent": "unknown",
-            "filters": {},
+            "filters": state.get("filters", {}),  # Preserve existing filters on error
             "keywords": [],
             "metadata": {"analyzer_error": str(e)},
         }
